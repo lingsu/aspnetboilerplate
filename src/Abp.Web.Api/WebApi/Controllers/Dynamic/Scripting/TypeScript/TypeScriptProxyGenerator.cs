@@ -36,12 +36,8 @@ namespace Abp.WebApi.Controllers.Dynamic.Scripting.TypeScript
             {
                 PrepareInputParameterTypes(methodInfo.Method);
                 PrepareOutputParameterTypes(methodInfo.Method);
-                var returnType = GetTypeContractName(methodInfo.Method.ReturnType);
-                if (returnType == "void")
-                    script.AppendLine(string.Format("            {0} ({1}): abp.IPromise; ", methodInfo.ActionName.ToCamelCase(), GetMethodInputParameter(methodInfo.Method)));
-                else
-                    script.AppendLine(string.Format("            {0} ({1}): abp.IGenericPromise<{2}>; ", methodInfo.ActionName.ToCamelCase(), GetMethodInputParameter(methodInfo.Method),returnType));
 
+                script.AppendLine(string.Format("            {0} ({1}): abp.IPromise<{2}>; ", methodInfo.ActionName.ToCamelCase(), GetMethodInputParameter(methodInfo.Method), GetTypeContractName(methodInfo.Method.ReturnType)));
             }
 
             script.AppendLine("     }");
@@ -75,11 +71,19 @@ namespace Abp.WebApi.Controllers.Dynamic.Scripting.TypeScript
         {
             foreach (var parameter in methodInfo.GetParameters())
             {
-                if (!_typesToBeDone.Contains(parameter.ParameterType) && !IsBasicType(parameter.ParameterType) && !_doneTypes.Contains(methodInfo.ReturnType))
+                if (!_typesToBeDone.Contains(parameter.ParameterType) && !IsBasicType(parameter.ParameterType))
                 {
                     _typesToBeDone.Add(parameter.ParameterType);
                 }
             }
+        }
+        protected void PrepareInputParameterTypes(Type type)
+        {
+            if (!_typesToBeDone.Contains(type) && !IsBasicType(type))
+            {
+                _typesToBeDone.Add(type);
+            }
+
         }
 
         protected string GenerateTypeScript(Type type)
@@ -104,7 +108,7 @@ namespace Abp.WebApi.Controllers.Dynamic.Scripting.TypeScript
         protected bool IsBasicType(Type type)
         {
             string[] input = { "guid", "string","bool",
-                           "datetime","int16","int32", "int64","single","double","boolean","void","task"};// Task doesn't require code generation, we consider it basic type
+                           "datetime","int16","int32", "int64","single","double","boolean","void"};
 
             List<string> basicTypes = new List<string>(input);
             if (basicTypes.Contains(type.Name.ToLowerInvariant()))
@@ -112,12 +116,12 @@ namespace Abp.WebApi.Controllers.Dynamic.Scripting.TypeScript
             else
                 return false;
         }
-            
+
         private string GetTypeContractName(Type type)
         {
             if (type == typeof(Task))
             {
-                return "void";
+                return "void /*task*/";
             }
 
             if (type.IsArray)

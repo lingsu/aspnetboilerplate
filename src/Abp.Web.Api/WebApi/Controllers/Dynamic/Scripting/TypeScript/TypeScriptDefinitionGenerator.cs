@@ -70,12 +70,8 @@ namespace Abp.WebApi.Controllers.Dynamic.Scripting.TypeScript
             script.AppendLine("static languages: any;");
             script.AppendLine("static currentLanguage: any;");
             script.AppendLine("}");
-            script.AppendLine("interface IGenericPromise<T> {");
+            script.AppendLine("interface IPromise<T> {");
             script.AppendLine("success(successCallback: (promiseValue: T) => any) : any;");
-            script.AppendLine("error(errorCallback: () => any) : any;");
-            script.AppendLine("}");
-            script.AppendLine("interface IPromise {");
-            script.AppendLine("success(successCallback: () => any) : any;");
             script.AppendLine("error(errorCallback: () => any) : any;");
             script.AppendLine("}");
             script.AppendLine("}");
